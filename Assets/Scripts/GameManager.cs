@@ -1,113 +1,103 @@
-using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-
-public struct StageData
-{
-    public int[] items;
-    public int bullet;
-    public int coin;
-
-    public StageData(int[] items, int bullet, int coin)
-    {
-        this.items = items;
-        this.bullet = bullet;
-        this.coin = coin;
-    }
-}
-
-public enum Panel
-{
-    gameOver = 0,
-    nextStage = 1,
-    gameEnd = 2
-}
+using DataTypes;
 
 
 public class GameManager : MonoBehaviour
 {
-    public static GameManager Instance;
+    public static GameManager Instance { get; private set; }
 
-    [SerializeField] private List<GameObject> stages;
-    //private List<StageData> stageInfo = new List<StageData>();
-    int currentStage;
-
-    [SerializeField] private TextMeshProUGUI coinText;
-    public int remainCoin;
-
-    [SerializeField] private List<GameObject> Panels;
-
-    public bool isGameProceed;
-    public bool isGameReset;
-   
-
-    private GameObject currentStageObject;
-
-    public bool canRetry;
-    private bool isStageEnd;
-    public int bulletUsed;
+    // MonoBehaviour 변수
 
 
+    // 게임 진행상황 변수
+    int currentStage = 0;
+    bool isGameInProgress = true;
+    bool isGameReset = true;
+    bool isStageEnd = false;
+
+    int currentCoin; // remainCoin에서 변경
+    int currentBullet; // 원래 PlayerController에 있어야 하는 변수 
+    int[] currentItems; // 원래 ItemController(현 ItemManager)에 있던 변수
+
+
+    // 게임 시스템 변수
+    public List<GameObject> stagePrefabs;
+    public List<GameObject> stageEventPanels;
+    public TextMeshProUGUI textCoin;
+    public TextMeshProUGUI textBullet;
+
+    GameObject currentStageReference;
+
+
+
+
+    /*
+     * Lifecycle Functions: MonoBehaviour 함수
+     */
     private void Awake()
     {
-        if (Instance == null) Instance = this;
-        else
+        if (Instance != null)
         {
             Destroy(gameObject);
             return;
         }
+        Instance = this;
+        DontDestroyOnLoad(gameObject);
     }
 
     private void Start()
     {
-        currentStage = 0;
-        //PrepareStage(currentStage);
-        //stages[currentStage].SetActive(true);
-        currentStageObject = Instantiate(stages[currentStage]); 
-        isGameProceed = true;
-        canRetry = true;
-        isStageEnd = false;
+        // 초기화 함수 작성 예정
     }
 
-    private void Update()
+
+
+    /*
+     * Game Progress Functions: 게임 진행상황과 관련된 함수
+     */
+    public void CollectCoin() // GainCoin에서 변경
     {
-        //if (PlayerController.Instance.bulletPossess >= 0 && remainCoin == 0)
-        //{
-        //    // Win condition
-        //    Panels[(int)Panel.nextStage].SetActive(true);
-        //}
-        //if (PlayerController.Instance.bulletPossess == 0 && PlayerController.Instance.bulletDestroyed && remainCoin != 0)
-        //{
-        //    // Lose condition
-        //    Panels[(int)Panel.gameOver].SetActive(true);
-        //    isGameProceed = false;
-        //}
+        // 코인 개수 변경하고 UI에 반영
+        currentCoin--;
+        textCoin.SetText($"Rest Coin \n X {currentCoin}");
+
+        if (currentCoin == 0)
+        {
+            isGameInProgress = false;
+            stageEventPanels[(int)GamePanel.NEXT_STAGE].SetActive(true);
+        }
     }
 
-    // DEPRECATED
-    private void PrepareStage(int stage)
+    public void UsedBullet() // NoBullet
     {
-        //foreach (GameObject s in stages)
-        //{
-        //    s.SetActive(false);
-        //}
-        //stages[stage].SetActive(true);
-
-        //ItemController.Instance.items = stageInfo[stage].items;
-        //PlayerController.Instance.bulletPossess = stageInfo[stage].bullet;
-        //remainCoin = stageInfo[stage].coin;
-
-        Instantiate(stages[stage]);
-        isGameProceed = true;
-
-        ItemController.Instance.ShowItem();
-        PlayerController.Instance.UpdateBulletPossess();
-        coinText.SetText($"Rest Coin \n X {remainCoin}");
+        // Bullet 사용 로직 가져오기
+        if (currentCoin != 0)
+        {
+            //isStageEnd = true; // 임시 제거. 없어도 되게 만들어야함.
+            isGameInProgress = false;
+            RetryNow();
+        }
+        else
+        {
+            isGameInProgress = true;
+            stageEventPanels[(int)GamePanel.NEXT_STAGE].SetActive(true);
+        }
     }
 
+    public void InitCoin()
+    {
+        // 코인 획득 및 초기화
+    }
+
+
+
+    /*
+     * Game System Functions: 게임 시스템과 관련된 함수
+     */
     public void ResetGame()
     {
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
@@ -115,270 +105,62 @@ public class GameManager : MonoBehaviour
 
     public void NextStage()
     {
-        StopAllCoroutines();
+        StopAllCoroutines(); // 공 제거 관련 버그때문에 넣었던 코드
 
-        if (currentStage == 3)
+        /* 게임 종료 컨디션 */
+        if (currentStage == 4)
         {
-            foreach (GameObject panel in Panels)
+            // 모든 panel 비활성화
+            for (int i = 0; i < stageEventPanels.Count; i++)
             {
-                panel.SetActive(false);
+                stageEventPanels[i].SetActive(false);
             }
-            Panels[(int)Panel.gameEnd].SetActive(true);
+            stageEventPanels[(int)GamePanel.GAME_END].SetActive(true);
         }
-        else
-        {
-            Panels[(int)Panel.nextStage].SetActive(false);
-            //PrepareStage(++currentStage);
-            isGameProceed = true;
-            isGameReset = true;
-            Destroy(currentStageObject);
-            currentStageObject = Instantiate(stages[++currentStage]);
-            //Panels[(int)Panel.nextStage].SetActive(true);
-            PlayerController.Instance.MakeBullet();
-            ItemController.Instance.UnSelectItem();
-            PlayerController.Instance.selectedItem = -1;
-        }
+
+        /* 다음 스테이지 활성화 */
+        stageEventPanels[(int)GamePanel.NEXT_STAGE].SetActive(true);
+
+        Destroy(currentStageReference);
+        currentStageReference = Instantiate(stagePrefabs[++currentStage]);
+
+        isGameInProgress = true;
+        isGameReset = true;
+
+        // PlayerController에서 Bullet 재생성 함수 호출하고, 선택한 아이템 index 초기화
+        // ItemController에서 아이템 사용 함수 호출
     }
-
-    public void RetryStage()
-    {
-        //foreach (GameObject p in Panels)
-        //{
-        //    p.SetActive(false);
-        //}
-        //PrepareStage(currentStage);
-        //isGameProceed = true;
-        isGameProceed = true;
-        Destroy(currentStageObject);
-        currentStageObject = Instantiate(stages[currentStage]);
-        Panels[(int)Panel.gameOver].SetActive(true);
-        isGameProceed = false;
-        //PlayerController.Instance.MakeBullet();
-        ItemController.Instance.UnSelectItem();
-        PlayerController.Instance.selectedItem = -1;
-    }
-
-    public void GainCoin()
-    {
-        remainCoin--;
-        coinText.SetText($"Rest Coin \n X {remainCoin}");
-
-        if (remainCoin == 0)
-        {
-            isGameProceed = false;
-            //NextStage();
-            Panels[(int)Panel.nextStage].SetActive(true);
-        }
-    }
-
-    public void NoBullet()
-    {
-        if (remainCoin != 0)
-        {
-            isStageEnd = true;
-            StartCoroutine(LateRetry(4.0f));
-        }
-    }
-
-    private IEnumerator LateRetry(float sec)
-    {
-        yield return new WaitForSeconds(sec);
-        if (remainCoin == 0)
-        {
-            isGameProceed = false;
-            //NextStage();
-            Panels[(int)Panel.nextStage].SetActive(true);
-        }
-        else
-        {
-            isGameProceed = false;
-            RetryStage();
-        }
-    }
-
 
     public void RetryNow()
     {
-        if (canRetry)
-        {
-            StopAllCoroutines();
-
-            Panels[(int)Panel.gameOver].SetActive(false);
-            Destroy(currentStageObject);
-            currentStageObject = Instantiate(stages[currentStage]);
-            isGameProceed = true;
-            isGameReset = true;
-            //StartCoroutine(RestartCooltime());
-
-            //Destroy(GameObject.Find("Bullet(Clone)"));
-            PlayerController.Instance.MakeBullet();
-            ItemController.Instance.UnSelectItem();
-            PlayerController.Instance.selectedItem = -1;
-            PlayerController.Instance.isPlayAvailable = true;
-
-            isStageEnd = false;
-        }
-    }
-
-    private IEnumerator RestartCooltime()
-    {
-        yield return new WaitForSeconds(0.1f);
-        isGameReset = false;
-    }
-
-
-    public void InitCoin(int numCoin)
-    {
-        remainCoin = numCoin;
-        coinText.SetText($"Rest Coin \n X {remainCoin}");
-    }
-
-
-
-
-
-    /***********************************
-     * DEPRECATED UNDER THIS LINE
-     ***********************************/
-
-    //[Header("Game Settings")]
-    //public int maxShots = 5;
-    private int shotsLeft;
-    private int score;
-    //private Coroutine gameOverCheckCoroutine = null;
-
-    //[Header("Object Settings")]
-    //public GameObject pointPrefab;
-    //public GameObject bombPrefab;
-    //public GameObject wallPrefab;
-
-    //public int pointCount = 3;
-    //public int bombCount = 1;
-    //public int wallCount = 2;
-
-    //[Header("Spawn Area")]
-    //public Vector2 spawnAreaMin = new Vector2(-7, -3.5f);
-    //public Vector2 spawnAreaMax = new Vector2(7, 3.5f);
-
-    //private bool isRespawning = false;
-    //private Rigidbody2D playerRb;
-
-
-    //private const float respawnDelay = 0.2f;
-    //private const float gameOverCheckDelay = 1.0f;
-    //private const float minVelocityThreshold = 0.1f;
-
-
-
-    //void Start()
-    //{
-    //    shotsLeft = maxShots;
-    //    score = 0;
-    //    //UpdateUI(); DEPRECATED
-    //    //SpawnObjects();
-
-    //    playerRb = FindObjectOfType<Rigidbody2D>();
-    //}
-
-    //void Update()
-    //{
-    //    //if (!isRespawning && !IsPointObjectExist())
-    //    //{
-    //    //    CheckAndRespawnObjects();
-    //    //}
-    //}
-
-    public void AddScore(int amount)
-    {
-        score += amount;
-        //UpdateUI(); DEPRECATED
-    }
-
-    public void ModifyShots(int amount)
-    {
-        //shotsLeft += amount;
-        ////UpdateUI(); DEPRECATED
-
-        //if (shotsLeft == 0 && gameOverCheckCoroutine == null)
+        //if (canRetry) // 이 조건 필요없는거 같아서 임시 제거
         //{
-        //    gameOverCheckCoroutine = StartCoroutine(CheckGameOverCondition());
+        StopAllCoroutines(); // 공 제거 관련 버그때문에 넣었던 코드
+
+        stageEventPanels[(int)GamePanel.GAME_OVER].SetActive(true);
+        Destroy(currentStageReference);
+        currentStageReference = Instantiate(stagePrefabs[currentStage]);
+
+        isGameInProgress = true;
+        isGameReset = true; // 어디쓰는거지 1
+        isStageEnd = false; // 어디쓰는거지 2
+
+        // PlayerController Bullet 재생성 함수 호출, SelectItem과 PlayerAvailable 변수 초기화
+        // ItemController에서 UseItem 호출
+
         //}
     }
 
-    //private IEnumerator CheckGameOverCondition()
-    //{
-    //    yield return new WaitForSeconds(gameOverCheckDelay);
 
-    //    while (playerRb != null && playerRb.linearVelocity.magnitude > minVelocityThreshold)
-    //    {
-    //        yield return null;
-    //    }
 
-    //    if (shotsLeft == 0)
-    //    {
-    //        // Update UI (DEPRECATED)
-    //    }
+    /* Getter */
+    public int[] GetCurrentItems() // const 생각 해야함
+    {
+        return currentItems;
+    }
 
-    //    gameOverCheckCoroutine = null;
-    //}
-
-    //public bool CanShoot() => shotsLeft > 0;
-    public bool CanShoot() => true;
-
-    public void UseShot() => ModifyShots(-1);
-
-    //public void CheckAndRespawnObjects()
-    //{
-    //    if (!isRespawning)
-    //    {
-    //        isRespawning = true;
-    //        StartCoroutine(RespawnObjectsCoroutine());
-    //    }
-    //}
-
-    //private IEnumerator RespawnObjectsCoroutine()
-    //{
-    //    yield return new WaitForSeconds(respawnDelay);
-
-    //    foreach (GameObject bomb in GameObject.FindGameObjectsWithTag("Bomb"))
-    //    {
-    //        Destroy(bomb);
-    //        yield return null;
-    //    }
-
-    //    yield return new WaitForSeconds(respawnDelay);
-
-    //    SpawnObjects();
-    //    isRespawning = false;
-    //}
-
-    //private void SpawnObjects()
-    //{
-    //    SpawnMultipleObjects(pointPrefab, pointCount);
-    //    SpawnMultipleObjects(bombPrefab, bombCount);
-    //    SpawnMultipleObjects(wallPrefab, wallCount);
-    //}
-
-    //private void SpawnMultipleObjects(GameObject prefab, int count)
-    //{
-    //    for (int i = 0; i < count; i++)
-    //    {
-    //        SpawnObject(prefab);
-    //    }
-    //}
-
-    //private void SpawnObject(GameObject prefab)
-    //{
-    //    Vector2 randomPosition = new Vector2(
-    //        Random.Range(spawnAreaMin.x, spawnAreaMax.x),
-    //        Random.Range(spawnAreaMin.y, spawnAreaMax.y)
-    //    );
-
-    //    Instantiate(prefab, randomPosition, Quaternion.identity);
-    //}
-
-    //private bool IsPointObjectExist()
-    //{
-    //    return GameObject.FindGameObjectWithTag("Point") != null;
-    //}
+    public void SetCurrentItems(int itemIndex)
+    {
+        currentItems[itemIndex]--;
+    }
 }
