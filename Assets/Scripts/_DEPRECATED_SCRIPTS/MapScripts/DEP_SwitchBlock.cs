@@ -15,6 +15,6 @@ public class DEP_SwitchBlock : MonoBehaviour
     {
         isOn = !isOn;
 
-        SoundsPlayer.Instance.PlaySFX(sfx);
+        //SoundsPlayer.Instance.PlaySFX(sfx);
     }
 }

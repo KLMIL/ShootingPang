@@ -12,9 +12,10 @@ public class PlayerManager : MonoBehaviour
     public List<ParticleSystem> itemParticles;
 
     GameManager gameManager;
-    ItemManager itemManager;
     PlayerController playerController;
     PlayerHUDController playerHUDController;
+    ItemManager itemManager;
+    
 
     private int selectedItem = -1;
     private bool isSelectAvailable = false;
@@ -22,10 +23,10 @@ public class PlayerManager : MonoBehaviour
     private bool isPlayAvailable = false;
 
     // Bullet 관련 필드
-    float maxBulletPower = 40f;
-    float maxLineLength = 1.5f;
-    float speedDamping = 0.98f;
-    float stopThreshold = 0.1f;
+    public float maxBulletPower = 40f;
+    public float maxLineLength = 1.5f;
+    public float speedDamping = 0.98f;
+    public float stopThreshold = 0.1f;
 
 
 
@@ -59,5 +60,10 @@ public class PlayerManager : MonoBehaviour
     {
         // itemManager의 UseItem() 함수 호출 및 selectedItem 변수 초기화 
 
+    }
+
+    public void DestroyBullet()
+    {
+        // 총알 제거되는 함수
     }
 }

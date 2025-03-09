@@ -12,7 +12,7 @@ public class DEP_Eat : MonoBehaviour
             DEP_GameManager.Instance.GainCoin();
             Destroy(transform.parent.gameObject);
 
-            SoundsPlayer.Instance.PlaySFX(sfx);
+            //SoundsPlayer.Instance.PlaySFX(sfx);
         }
     }
 

@@ -1,15 +1,13 @@
 using UnityEngine;
+using TMPro;
 using System.Collections.Generic;
 using UnityEngine.UI;
-using TMPro;
 
 public class PlayerHUDController : MonoBehaviour
 {
     public static PlayerHUDController Instance { get; private set; }
 
-
     GameManager gameManager;
-    ItemManager itemManager;
 
     public List<Image> imgItem;
 
@@ -27,7 +25,6 @@ public class PlayerHUDController : MonoBehaviour
     private void Start()
     {
         gameManager = GameManager.Instance;
-        itemManager = ItemManager.Instance;
     }
 
     public void RefreshItemDisplay()
@@ -44,7 +41,7 @@ public class PlayerHUDController : MonoBehaviour
                 }
                 else
                 {
-                    imgText.text = $"{itemManager.GetItemNameByIndex(i)} \n {currentItems[i]}";
+                    //imgText.text = $"{itemManager.GetItemNameByIndex(i)} \n {currentItems[i]}";
                 }
             }
         }

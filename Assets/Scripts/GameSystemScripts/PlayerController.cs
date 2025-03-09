@@ -1,3 +1,4 @@
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour
@@ -26,8 +27,15 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        // KeyDown Event Listener ÇÔ¼ö
+        PlayerMouseEvent();
     }
+
+
+    void PlayerMouseEvent()
+    {
+
+    }
+
 
 
     private void SelectItem(int itemIndex)

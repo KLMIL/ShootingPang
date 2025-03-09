@@ -1,22 +1,13 @@
 using UnityEngine;
 
-public class DEP_TunnelBlock : MonoBehaviour
+public class TurnelGimmikBoost : _TurnelGimmik
 {
-    public float power = 100f;
-    public AudioClip sfx;
+    // 대충 속도 빨라지는 기믹임
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        
-    }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
 
+    // 임시 함수 저장용
+    /*
     private void OnTriggerEnter2D(Collider2D collision)
     {
         //위치 이동
@@ -28,6 +19,7 @@ public class DEP_TunnelBlock : MonoBehaviour
 
         collision.GetComponent<Rigidbody2D>().linearVelocity = power * dir;
 
-        SoundsPlayer.Instance.PlaySFX(sfx);
+        //SoundsPlayer.Instance.PlaySFX(sfx);
     }
+    */
 }

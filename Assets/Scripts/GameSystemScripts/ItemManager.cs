@@ -1,6 +1,8 @@
 using UnityEngine;
 
 using DataTypes;
+using System.Collections.Generic;
+using UnityEngine.UI;
 
 
 public class ItemManager : MonoBehaviour
@@ -11,13 +13,11 @@ public class ItemManager : MonoBehaviour
     {
         "Bomb", "Magnet", "KnockBack", "Ghost", "Cleaner", "ZeroGravity"
     };
-
+    
 
     GameManager gameManager;
-    PlayerHUDController playerHUDController;
     
     
-
     private void Awake()
     {
         if (Instance != null)
@@ -31,7 +31,6 @@ public class ItemManager : MonoBehaviour
     private void Start()
     {
         gameManager = GameManager.Instance;
-        playerHUDController = PlayerHUDController.Instance;
     }
 
 
@@ -47,8 +46,13 @@ public class ItemManager : MonoBehaviour
         else
         {
             gameManager.SetCurrentItems(itemIndex);
-            playerHUDController.RefreshItemDisplay();
+            //playerHUDController.RefreshItemDisplay();
         }
+    }
+
+    public void ApplyItemEffect(int itemIndex)
+    {
+        // 아이템 능력 적용지점
     }
 
 
